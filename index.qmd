@@ -1,0 +1,10 @@
+---
+title: Uses of gnm for Generalized (Non)linear Modelling
+author: Heather Turner
+affiliation: University of Warwick
+date: "2025-11-26"
+date-format: long
+footer: <https://hturner.github.io/BIBC>
+format:
+  warwickpres-revealjs: default
+---
