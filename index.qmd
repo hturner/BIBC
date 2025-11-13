@@ -446,3 +446,141 @@ a lower QIC tells you that overall, the time-exchangeable structure captures the
 
 # Modelling the mean-variance relationship for in-vitro diagnostic assays
 
+## Performance of In-Vitro Diagnostic (IVD) Assays
+
+Manufacturers of IVD assays need to provide information the precision of their product.
+
+This is based on a precision experiment. `CA19_9` from {VCA} is an example from the Clinical and Laboratory Standards Institute guidelines.
+
+6 samples were assayed with 5 replicates on 5 days, at 3 sites
+
+* `result`: measured concentration of CA19-9 (tumour marker)
+* `day`: day 1, 2, 3, 4, or 5
+* `site`: laboratory 1, 2 or 3
+* `sample`: P1, P2, P5, Q3, Q4, Q6 ("P" patient sample pool, "Q" control, number indicates concentration)
+
+::: notes
+Carbohydrate antigen 19-9 (CA 19-9) is a protein in the blood. It is a tumour marker used to monitor cances of the pancreas or bile ducts
+
+All 3 sites used same samples: prepared at site 1 then distributed to other sites
+https://www.normsplash.com/Samples/CLSI/151253346/CLSI-EP05-A3-2014-en-2.pdf
+:::
+
+## Variance Component Analysis
+
+`anovaVCA()` from {VCA} computes variance components based on ANOVA:
+
+```{r}
+library(VCA)
+data(CA19_9)
+anovaVCA(result ~ site/day, Data = subset(CA19_9, sample == "P1"))
+```
+
+:::notes
+yes really, capital D
+:::
+
+## Precision Performance Table 
+
+Doing this for all samples, we can obtain a "Precision Performance Table"
+
+|           | Mean   | Reproducibility %CV | Between-Site %CV | Between-Day %CV | Repeatability %CV |
+|-----------|--------|---------------------|------------------|-----------------|-------------------|
+| sample.P1 | 12.08  | 8.6                 | 5.1              | 3.5             | 6.0               |
+| sample.P2 | 41.58  | 4.4                 | 3.1              | 0.8             | 3.1               |
+| sample.Q3 | 55.75  | 4.1                 | 3.2              | 1.3             | 2.2               |
+| sample.Q4 | 165.70 | 3.8                 | 3.3              | 0.8             | 1.7               |
+| sample.P5 | 379.10 | 2.4                 | 1.3              | 0.5             | 2.0               |
+| sample.Q6 | 414.30 | 3.7                 | 3.1              | 0.4             | 2.1               |
+
+where *Reproducibility* is the total variation and *Repeatability* is the pure assay imprecision.
+
+## Precision Profiles
+
+Precision profiles model the relationship between the (a component of) variance 
+and the mean response. 
+
+{VFP} implements several models as in the Variance Function Program software:
+
+| Number | Model                                                   | Type      |
+|--------|---------------------------------------------------------|-----------|
+| 1      | $\sigma^2 = 1$                                       | linear    |
+| 6      | $\sigma^2 = \beta_1 + \beta_2 \mu +   \beta_3 \mu^J$ | nonlinear |
+| 7      | $\sigma^2 = \beta_1 + \beta_2 \mu^J$                 | nonlinear |
+| 8      | $\sigma^2 = (\beta_1 + \beta_2 \mu)^J$               | nonlinear |
+| 9      | $\sigma^2 = \beta_1 \mu^J$                           | nonlinear |
+
+plus special cases Models 2-5 with $J$ set to 2 or another specified value.
+
+## GNMs for Precision Profiles
+
+For balanced designs we have 
+
+$$E(\hat{\sigma}_c^2) = \sigma_c^2 \qquad \text{Var}(\hat{\sigma}_c^2) \approx \frac{2}{\nu_c}\sigma_c^4$$
+
+where $\nu_c$ is the degrees of freedom for $\hat{\sigma}_c^2$. 
+
+Therefore we can fit precision profiles using a Gamma GNM with an identity link
+
+$$E(\hat{\sigma}_c^2) = \eta(\mu, \boldsymbol{\beta}) \qquad \text{Var}(\hat{\sigma}_c^2) = \frac{\phi}{\alpha_c} E(\hat{\sigma}_c^2)^2$$
+
+with weights $\alpha_i = \nu_c/2$.
+
+## Modelling Total Variability
+
+```{r}
+vca <- anovaVCA(result ~ site/day, Data = CA19_9, by = "sample")
+library(VFP)
+total <- get_mat(vca, vc = "total")
+total
+```
+
+## Example: Model 7
+
+```{r}
+powfun7 <- function (x) {
+    list(predictors = list(beta1 = 1, beta2 = 1, J = 1), 
+         variables = list(substitute(x)), 
+         term = function(predictors, variables) {
+            paste0(predictors[1], "+", 
+                   predictors[2], "*", variables[1], "^", predictors[3])
+         })
+}
+class(powfun7) <- "nonlin"
+mod7 <- gnm(VC ~ powfun7(Mean) - 1, family = Gamma(link = "identity"), weights = DF/2, 
+                data = total, start = c(1, 1, 2), verbose = FALSE)
+coef(mod7)
+deviance(mod7)
+```
+## Selecting best model
+
+`fit_vfp()` will fit all 9 models and select best fitting by AIC
+
+```{r}
+#| eval: false
+all_mod <- fit_vfp(total)
+all_mod
+```
+
+```{r}
+#| echo: false
+all_mod <- fit_vfp(total)
+all_mod
+```
+
+## Functional sensitivity
+
+Determine concentrations at which a specified CV is not exceeded.
+
+```{r}
+#| fig.width: 6
+#| fig.height: 4
+plot(all_mod, model.no = 4, type = "cv", ylim = c(0, 8), Prediction = 5)
+```
+
+
+:::notes
+When you combine multiple random effects (each with its own variance estimate and DF) into a single total variance (the sum of variance components), the sampling distribution of that sum does not have an integer DF.
+
+To account for this, VCA uses the Satterthwaite approximation to compute the effect DF for the total variance
+:::
