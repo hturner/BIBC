@@ -30,3 +30,4 @@ contributes:
       height: 720
       keep-md: false
       embed-resources: true
+      mathjax: local
