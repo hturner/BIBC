@@ -1109,16 +1109,16 @@ display:block!important;
 <h2>Generalized Nonlinear Models (GNMs)</h2>
 <p>In a Generalized <em>Linear</em> Model (GLM) we have</p>
 <p><span class="math display">\[
-g(E(y)) = \beta_0 + \beta_1 x_{1} + ... + \beta_p x_{p}
+g(E(y_i)) = g(\mu_i) = \beta_0 + \beta_1 x_{1i} + ... + \beta_p x_{pi}
 \]</span></p>
 <p>and</p>
 <p><span class="math display">\[
-\text{Var}(y) = \phi V(\mu)
+\text{Var}(y_i) = \phi a_i V(\mu_i)
 \]</span></p>
 <div class="fragment">
 <p>A GNM extends this to <span class="math display">\[
-g(\mu) = \eta(\boldsymbol{x}; \bm{\beta})
-\]</span> where <span class="math inline">\(\eta(\bm{x}; \bm{\beta})\)</span> is nonlinear in the parameters <span class="math inline">\(\bm{\beta}\)</span>.</p>
+g(\mu_i) = \eta(\boldsymbol{x}_i; \boldsymbol{\beta})
+\]</span> where <span class="math inline">\(\eta(\boldsymbol{x}; \boldsymbol{\beta})\)</span> is nonlinear in the parameters <span class="math inline">\(\boldsymbol{\beta}\)</span>.</p>
 </div>
 <aside class="notes">
 <p>Should I use <span class="math inline">\(\phi a V(\mu)\)</span> here?</p>
@@ -1140,7 +1140,7 @@ display:block!important;
 <div class="fragment">
 <p>… an extension of Nonlinear Least Squares</p>
 <ul>
-<li>using a nonlinear function of a continuous variable to model a non-Gaussian response</li>
+<li>using a link function to model a non-Gaussian response</li>
 </ul>
 </div>
 <div class="fragment">
@@ -1150,10 +1150,16 @@ display:block!important;
 </ul>
 </div>
 </section>
-<section id="models" class="slide level2">
-<h2>Models</h2>
+<section id="classic-models-that-are-gnms" class="slide level2">
+<h2>Classic Models that are GNMs</h2>
+<ul>
+<li>Goodman’s RC model for 2 way tables (JASA, 74, 1979) <span class="math display">\[\log \mu_{rc} = \alpha_r + \beta_c + \gamma_r\delta_c\]</span></li>
+<li>Stereotype model for ordered categorical data (JRSSB, 46, 1984) <span class="math display">\[pr(y_i = c | \boldsymbol{x}_i) = \frac{\exp(\beta_{0c} + \gamma_c \boldsymbol{\beta}^T \boldsymbol{x}_i)}
+{\sum_r\exp(\beta_{0r} + \gamma_r \boldsymbol{\beta}^T \boldsymbol{x}_i)}\]</span></li>
+<li>Lee-Carter age-specific mortality model (JASA, 87, 1992) <span class="math display">\[\log(\mu_{ay}/e_{ay}) = \alpha_a + \beta_a \gamma_y\]</span></li>
+</ul>
 <aside class="notes">
-<p>Some examples of models this framework covers: - Goodman’s RC (RC(1), RC(2), Homog) - GAMMI (more from agri pov) - Stereotype (medical pov, eliminate) - Lee Carter (age-specific mortality models) Other, no need to highlight here: Diag Ref, UNIDIFF, sum of exponentials] - mind you, example of double exponential decay model: https://research-repository.uwa.edu.au/en/publications/pollen-mediated-gene-flow-from-glyphosate-resistant-common-waterh</p>
+<p>Goodman’s RC aka GAMMI models to analyse genotype-by-environment interactions (maybe more general ressponse, e.g. crop yield) - Stereotype (medical pov, eliminate) - Lee Carter (age-specific mortality models) Other, no need to highlight here: Diag Ref, UNIDIFF, sum of exponentials] - mind you, example of double exponential decay model: https://research-repository.uwa.edu.au/en/publications/pollen-mediated-gene-flow-from-glyphosate-resistant-common-waterh</p>
 <style type="text/css">
 span.MJX_Assistive_MathML {
 position:absolute!important;
@@ -1167,13 +1173,13 @@ display:block!important;
 }</style></aside>
 </section></section>
 <section>
-<section id="conditional-poisson-models-to-analyse-case-crossover-studies-in-epidemiology" class="title-slide slide level1 center">
-<h1>Conditional Poisson models to analyse case-crossover studies in epidemiology</h1>
+<section id="poisson-models-to-analyse-case-crossover-studies-in-epidemiology" class="title-slide slide level1 blue-bg center">
+<h1>Poisson models to analyse case-crossover studies in epidemiology</h1>
 
 </section>
 <section id="example-effect-of-ozone-pollution-on-deaths-in-london" class="slide level2">
 <h2>Example: Effect of Ozone Pollution on Deaths in London</h2>
-<p>Example data (Bhaskaran et al, International Journal of Epidemiology 2013, 42: 1187-1195)</p>
+<p>Example data (Bhaskaran et al, International Journal of Epidemiology 42, 2013)</p>
 <ul>
 <li><code>date</code> daily from 2002-01-01 to 2006-12-31</li>
 <li><code>ozone</code> daily average, µg/m<span class="math inline">\(^3\)</span></li>
@@ -1211,10 +1217,6 @@ width: 1px!important;
 overflow: hidden!important;
 display:block!important;
 }</style></aside>
-</section>
-<section id="scatterplot" class="slide level2">
-<h2>Scatterplot</h2>
-<p>Need to look over short periods</p>
 </section>
 <section id="case-cross-over-data" class="slide level2">
 <h2>Case cross-over data</h2>
@@ -1317,7 +1319,7 @@ display:block!important;
 <section id="conditional-logistic-model" class="slide level2">
 <h2>Conditional logistic model</h2>
 <p>Given that one case occurs in each stratum, we can model the event <span class="math inline">\(D_{i,s}\)</span> that the death in stratum <span class="math inline">\(s\)</span> occurs on day <span class="math inline">\(i\)</span> as follows:</p>
-<p><span class="math display">\[D_{i,s} \sim \text{Bernoulli} \left(\pi_i = \frac{\exp \left\{\beta^Tx_i\right\}}{\sum_{j \in s(i)} \exp \left\{ \beta^T x_j\right\}}\right)\]</span> In our London example, we have:</p>
+<p><span class="math display">\[D_{i,s} \sim \text{Bernoulli} \left(\pi_i = \frac{\exp \left\{\boldsymbol{\beta}^T\boldsymbol{x}_i\right\}}{\sum_{j \in s(i)} \exp \left\{ \boldsymbol{\beta}^T \boldsymbol{x}_j\right\}}\right)\]</span> In our London example, we have:</p>
 <ul>
 <li>8034 rows: 1826 dates <span class="math inline">\(\times\)</span> 4-5 of each weekday per month</li>
 <li>2 parameters: one for <code>ozone</code> and one for <code>temperature</code></li>
@@ -1336,37 +1338,16 @@ overflow: hidden!important;
 display:block!important;
 }</style></aside>
 </section>
-<section id="conditional-logistic-model-in-r" class="slide level2">
-<h2>Conditional logistic model in R</h2>
-<p>Because we have weights, need to fit as Cox proportional hazards model</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href></a>fit <span class="ot">&lt;-</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(<span class="fu">rep</span>(<span class="dv">1</span>, <span class="fu">nrow</span>(london_expanded)), case) <span class="sc">~</span> ozone <span class="sc">+</span> temperature <span class="sc">+</span> <span class="fu">strata</span>(record),</span>
-<span id="cb2-2"><a href></a>             <span class="at">data =</span> london_expanded,</span>
-<span id="cb2-3"><a href></a>             <span class="at">weights =</span> london_expanded<span class="sc">$</span>weight)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<aside class="notes">
-<p>This is a bit of a distraction here</p>
-<style type="text/css">
-span.MJX_Assistive_MathML {
-position:absolute!important;
-clip: rect(1px, 1px, 1px, 1px);
-padding: 1px 0 0 0!important;
-border: 0!important;
-height: 1px!important;
-width: 1px!important;
-overflow: hidden!important;
-display:block!important;
-}</style></aside>
-</section>
+
 <section id="equivalent-poisson-model" class="slide level2">
 <h2>Equivalent Poisson model</h2>
-<p>Equivalently, we can fit a Poisson model to <span class="math inline">\(Y_{i,s}\)</span>, the number of deaths on date <span class="math inline">\(i\)</span> in stratum <span class="math inline">\(s\)</span>, where</p>
+<p>Equivalently, we can fit a Poisson model to <span class="math inline">\(y_{i,s}\)</span>, the number of deaths on date <span class="math inline">\(i\)</span> in stratum <span class="math inline">\(s\)</span>, where</p>
 <p><span class="math display">\[
-E(Y_i) = \exp(\alpha_s + \beta^Tx_i)
+E(y_i) = \exp(\alpha_s + \boldsymbol{\beta}^T\boldsymbol{x}_i)
 \]</span> In this case we have</p>
 <ul>
 <li>1826 rows, one for each date</li>
-<li>2 parameters of interest plus 1826 nuisance parameters!</li>
+<li>2 parameters of interest plus <span class="math inline">\(5\times 12 \times 7 = 420\)</span> nuisance parameters!</li>
 </ul>
 <aside class="notes">
 <p>Could give some pros here (adjusting for overdispersion and auto-correlation ) Levy and others (2001) point out equivalence</p>
@@ -1382,21 +1363,80 @@ overflow: hidden!important;
 display:block!important;
 }</style></aside>
 </section>
-<section id="eliminate-feature" class="slide level2">
-<h2>Eliminate feature</h2>
-<aside class="notes">
-<p>Could go into depth about augmented least squares in gnm, or give reduced explanation about structure of design matrix and how we only need to compute on p x p matrix</p>
-<style type="text/css">
-span.MJX_Assistive_MathML {
-position:absolute!important;
-clip: rect(1px, 1px, 1px, 1px);
-padding: 1px 0 0 0!important;
-border: 0!important;
-height: 1px!important;
-width: 1px!important;
-overflow: hidden!important;
-display:block!important;
-}</style></aside>
+<section id="fitting-glms" class="slide level2">
+<h2>Fitting GLMs</h2>
+<p>GLMs are estimated with an IWLS algorithm, where</p>
+<p><span class="math display">\[
+         \boldsymbol{\beta}^{(r + 1)} = \left(\boldsymbol{X}^{T}\boldsymbol{W}^{(r)}\boldsymbol{X}\right)^{-1}\boldsymbol{X}^{T}\boldsymbol{W}^{(r)}\boldsymbol{z}^{(r)}
+\]</span></p>
+<p>{gnm} uses the same approach for GNMs, with a generalized inverse to avoid specifying identifiability constraints.</p>
+<p>{gnm} also has an “eliminate” feature, to efficient estimate parameters of a nuisance factor, as in the Poisson model for case-crossover data.</p>
+</section>
+<section id="augmented-least-squares" class="slide level2">
+<h2>Augmented Least Squares</h2>
+<p>For an ordinary least squares model <span class="math display">\[
+\begin{align*}
+        \left[(\boldsymbol{y}|\boldsymbol{X})^T(\boldsymbol{y}|\boldsymbol{X})\right]^{-1} &amp;=
+        \begin{pmatrix}
+            \boldsymbol{y}^T\boldsymbol{y} &amp; \boldsymbol{y}^T\boldsymbol{X} \\
+            \boldsymbol{X}^T\boldsymbol{y} &amp; \boldsymbol{X}^T\boldsymbol{X} \\
+        \end{pmatrix}^{-1} =
+        \begin{pmatrix}
+            \boldsymbol{A}_{11} &amp; \boldsymbol{A}_{12} \\
+            \boldsymbol{A}_{21} &amp; \boldsymbol{A}_{22} \\
+        \end{pmatrix}
+    \end{align*}
+\]</span> where <span class="math inline">\(\boldsymbol{A}_{11}, \boldsymbol{A}_{12}\)</span> and <span class="math inline">\(\boldsymbol{A}_{22}\)</span> are functions of <span class="math inline">\(\boldsymbol{y}^T\boldsymbol{y}\)</span>, <span class="math inline">\(\boldsymbol{X}^T\boldsymbol{y}\)</span> and <span class="math inline">\(\boldsymbol{X}^T\boldsymbol{X}\)</span>.</p>
+<p>Then it can be shown that <span class="math display">\[
+    \begin{align*}
+        \hat{\boldsymbol{\beta}} &amp;= (\boldsymbol{X}^T\boldsymbol{X})^{-1}\boldsymbol{X}^T\boldsymbol{y}
+        = - \frac{\boldsymbol{A}_{21}}{\boldsymbol{A}_{11}}
+    \end{align*}
+\]</span> requiring only the first row (column) of the inverse to be found.</p>
+</section>
+<section id="application-to-nuisance-parameters-i" class="slide level2">
+<h2>Application to Nuisance Parameters I</h2>
+<p>Let <span class="math display">\[
+\tilde{\boldsymbol{X}} = \boldsymbol{W}^{\frac{1}{2}}(\boldsymbol{z}|\boldsymbol{X}) =
+(\boldsymbol{U} | \boldsymbol{V})
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\boldsymbol{V}\)</span> is the <span class="math inline">\(nk \times n\)</span> matrix of dummy variables corresponding to the nuisance factor with <span class="math inline">\(n\)</span> levels.</li>
+<li><span class="math inline">\(\boldsymbol{U}\)</span> is a <span class="math inline">\(nk \times (p + 1)\)</span> matrix where <span class="math inline">\(p\)</span> is the number of model parameters, typically with <span class="math inline">\(n &gt;&gt; p\)</span>.</li>
+</ul>
+</section>
+<section id="application-to-nuisance-parameters-ii" class="slide level2">
+<h2>Application to Nuisance Parameters II</h2>
+<p>Then <span class="math display">\[
+    \begin{align*}
+        (\tilde{\boldsymbol{X}}^T\tilde{\boldsymbol{X}})^{-} &amp;=
+        \begin{pmatrix}
+            \boldsymbol{U}^T\boldsymbol{U} &amp; \boldsymbol{U}^T\boldsymbol{V} \\
+            \boldsymbol{V}^T\boldsymbol{U} &amp; \boldsymbol{V}^T\boldsymbol{V} \\
+        \end{pmatrix}^{-}
+        = \begin{pmatrix}
+            \boldsymbol{B}_{11} &amp; \boldsymbol{B}_{12} \\
+            \boldsymbol{B}_{21} &amp; \boldsymbol{B}_{22} \\
+        \end{pmatrix}
+    \end{align*}
+\]</span> Again, only the first row (column) of this generalised inverse is required to estimate <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span>, so we are only interested in <span class="math inline">\(\boldsymbol{B}_{11}\)</span> and <span class="math inline">\(\boldsymbol{B}_{12}\)</span>.</p>
+<p><span class="math display">\[  
+    \begin{align*}
+        \boldsymbol{B}_{11} &amp;= (\boldsymbol{U}^T\boldsymbol{U} -
+        \boldsymbol{U}^T\boldsymbol{V}(\boldsymbol{V}^T\boldsymbol{V})^{-1}\boldsymbol{V}^T\boldsymbol{U})^{-} \\
+        \boldsymbol{B}_{12} &amp;= - (\boldsymbol{V}^T\boldsymbol{V})^{-1}\boldsymbol{V}^T\boldsymbol{U}\boldsymbol{B}_{11}
+    \end{align*}
+\]</span></p>
+</section>
+<section id="elimination-of-the-nuisance-factor" class="slide level2">
+<h2>Elimination of the Nuisance Factor</h2>
+<ul>
+<li><span class="math inline">\(\boldsymbol{U}^T\boldsymbol{U}\)</span> is <span class="math inline">\(p \times p\)</span>: not expensive to compute.</li>
+<li><span class="math inline">\(\boldsymbol{V}^T\boldsymbol{V}\)</span> is diagonal: the non-zero elements can be computed directly</li>
+<li><span class="math inline">\(\boldsymbol{V}^T\boldsymbol{U}\)</span> is equivalent to aggregating the rows of <span class="math inline">\(\boldsymbol{U}\)</span> by levels of the nuisance factor</li>
+</ul>
+<p>So we do not need to construc the large <span class="math inline">\(nk \times n\)</span> matrix <span class="math inline">\(\bm{V}\)</span>.</p>
+<p>We only need to construct the <span class="math inline">\(nk \times (p + 1)\)</span> matrix <span class="math inline">\(\boldsymbol{U}\)</span>, saving memory and reducing the computational burden.</p>
 </section>
 <section id="example" class="slide level2">
 <h2>Example</h2>
@@ -1407,7 +1447,7 @@ display:block!important;
 <span id="cb3-3"><a href></a>                   <span class="at">data =</span> london, <span class="at">family =</span> poisson)</span>
 <span id="cb3-4"><a href></a><span class="fu">toc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>1.19 sec elapsed</code></pre>
+<pre><code>1.216 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell" data-layout-align="center">
@@ -1416,7 +1456,7 @@ display:block!important;
 <span id="cb5-3"><a href></a>                   <span class="at">data =</span> london, <span class="at">family =</span> poisson)</span>
 <span id="cb5-4"><a href></a><span class="fu">toc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.007 sec elapsed</code></pre>
+<pre><code>0.006 sec elapsed</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href></a><span class="fu">coef</span>(poisson_gnm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -1427,7 +1467,7 @@ display:block!important;
 </div>
 </section></section>
 <section>
-<section id="models-for-longitudinal-categorical-data" class="title-slide slide level1 center">
+<section id="models-for-longitudinal-categorical-data" class="title-slide slide level1 yellow-bg center">
 <h1>Models for longitudinal categorical data</h1>
 
 </section>
@@ -1464,9 +1504,9 @@ display:block!important;
 </tr>
 </tbody>
 </table>
-<p>Let <span class="math inline">\(Y_{it} \in \left\{1, ..., J\right\}\)</span> be the response for subject <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span>.</p>
+<p>Let <span class="math inline">\(y_{it} \in \left\{1, ..., J\right\}\)</span> be the response for subject <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span>.</p>
 <p>We want to model the marginal probabilities</p>
-<p><span class="math display">\[P(Y_{it} = j | \boldsymbol{x}_{it})\]</span> Regarding the correlation between repeated measures for the same subject as a nuisance.</p>
+<p><span class="math display">\[P(y_{it} = j | \boldsymbol{x}_{it})\]</span> regarding the correlation between repeated measures as a nuisance.</p>
 <aside class="notes">
 <p>Marginal (univariate) probabilities for one time point vs multivariate over all times jointly On average, how do the probabilities change with covariates</p>
 <style type="text/css">
@@ -1483,23 +1523,23 @@ display:block!important;
 </section>
 <section id="indicator-vector-representation" class="slide level2">
 <h2>Indicator vector representation</h2>
-<p>Representing the categorical response <span class="math inline">\(Y_{it}\)</span> as a vector of integers:</p>
-<p><span class="math display">\[\boldsymbol{Y}_{it} = (Y_{i1}, ..., Y_{iJ})^\top\]</span></p>
+<p>Representing the categorical response <span class="math inline">\(y_{it}\)</span> as a vector of integers:</p>
+<p><span class="math display">\[\boldsymbol{y}_{it} = (y_{i1}, ..., y_{iJ})^\top\]</span></p>
 <p>where</p>
-<p><span class="math display">\[Y_{ij} =
+<p><span class="math display">\[y_{ij} =
 \begin{cases}
-1, &amp; \text{if } Y_i = j, \\
+1, &amp; \text{if } y_i = j, \\
 0, &amp; \text{otherwise.}
-\end{cases}\]</span> Then the expected value is the vector of category probabilities we want to model <span class="math display">\[E[\boldsymbol{Y}_{it} | \boldsymbol{x}_{it}] =
-\left( P(Y_{it} = 1 | \boldsymbol{x}_{it}),\, P(Y_{it} = 2 | \boldsymbol{x}_{it}),\, \dots,\, P(Y_{it} = J | \boldsymbol{x}_{it}) \right)^\top = \boldsymbol{\pi}_{it}\]</span></p>
+\end{cases}\]</span> Then the expected value is the vector of category probabilities we want to model <span class="math display">\[E[\boldsymbol{y}_{it} | \boldsymbol{x}_{it}] =
+\left( P(y_{it} = 1 | \boldsymbol{x}_{it}),\, P(y_{it} = 2 | \boldsymbol{x}_{it}),\, \dots,\, P(y_{it} = J | \boldsymbol{x}_{it}) \right)^\top = \boldsymbol{\pi}_{it}\]</span></p>
 </section>
 <section id="generalized-estimating-equation-approach" class="slide level2">
 <h2>Generalized Estimating Equation Approach</h2>
 <ol type="1">
-<li>Model the marginal mean <span class="math inline">\(E[\boldsymbol{Y}_{it} | \boldsymbol{x}_{it}] = \boldsymbol{\pi}_{it}(\boldsymbol{\beta})\)</span></li>
-<li>Stack the repeated outcomes for a subject: <span class="math inline">\(\boldsymbol{Y}_i = (\boldsymbol{Y}_{i1}^\top, ..., \boldsymbol{Y}_{iT}^\top)^\top\)</span></li>
-<li>Specify a “working” covariance matrix: <span class="math inline">\(\text{Var}(\boldsymbol{Y}_i) = \boldsymbol{V}_i(\boldsymbol{\beta}, \boldsymbol{\alpha})\)</span></li>
-<li>Solve the estimating equation <span class="math display">\[\boldsymbol{U(\boldsymbol{\beta}, \boldsymbol{\alpha})}= \sum_i \mathbf{D}_i^{\top} \mathbf{V}_i^{-1} (\mathbf{Y}_i - \boldsymbol{\pi}_i) = \boldsymbol{0},
+<li>Model the marginal mean <span class="math inline">\(E[\boldsymbol{y}_{it} | \boldsymbol{x}_{it}] = \boldsymbol{\pi}_{it}(\boldsymbol{\beta})\)</span></li>
+<li>Stack the repeated outcomes for a subject: <span class="math inline">\(\boldsymbol{y}_i = (\boldsymbol{y}_{i1}^\top, ..., \boldsymbol{y}_{iT}^\top)^\top\)</span></li>
+<li>Specify a “working” covariance matrix: <span class="math inline">\(\text{Var}(\boldsymbol{y}_i) = \boldsymbol{V}_i(\boldsymbol{\beta}, \boldsymbol{\alpha})\)</span></li>
+<li>Solve the estimating equation <span class="math display">\[\boldsymbol{U(\boldsymbol{\beta}, \boldsymbol{\alpha})}= \sum_i \\boldsymbolathbf{D}_i^{\top} \\boldsymbolathbf{V}_i^{-1} (\\boldsymbolathbf{y}_i - \boldsymbol{\pi}_i) = \boldsymbol{0},
 \quad
 \mathbf{D}_i = \frac{\partial \boldsymbol{\pi}_i}{\partial \boldsymbol{\beta}^\top}\]</span></li>
 </ol>
@@ -1516,7 +1556,7 @@ display:block!important;
 <p><span class="math display">\[\log \left(\frac{\pi_{itj}}{\pi_{itJ}}\right) = \beta_{j0} + \boldsymbol{\beta}_j^\top \mathbf{x}_{it},
 \quad j = 1, \dots, J-1\]</span></p></li>
 <li><p>Cumulative link model for ordinal outcomes</p>
-<p><span class="math display">\[F^{-1}\bigl[P(Y_{it} \le j \mid \mathbf{x}_{it})\bigr] = \beta_{j0} + \boldsymbol{\beta}^\top \mathbf{x}_{it},
+<p><span class="math display">\[F^{-1}\bigl[P(y_{it} \le j \mid \mathbf{x}_{it})\bigr] = \beta_{j0} + \boldsymbol{\beta}^\top \mathbf{x}_{it},
 \quad j = 1, \dots, J-1\]</span> from which <span class="math inline">\(\pi_{itj}\)</span> can be derived as differences between cumulative probabilities.</p></li>
 </ul>
 <aside class="notes">
@@ -1565,7 +1605,7 @@ display:block!important;
 f_{jj&#39;g} &amp; f_{j(j&#39;+ 1)g} \\
 f_{(j+ 1)j&#39;g} &amp; f_{(j + 1)(j&#39;+ 1)g}
 \end{matrix}\right]\]</span> i.e. <span class="math inline">\(\log(\theta_{jj&#39;g}) = \phi^g (\mu^g_j - \mu^g_{j+1}) (\mu^g_{j&#39;} - \mu^g_{j&#39;+1})\)</span></li>
-<li>Estimate <span class="math inline">\(P(Y_{it} = j, Y_{it&#39;} = j&#39;|x_i)\)</span> by iterative proportional fitting to calculate <span class="math inline">\(V_i\)</span></li>
+<li>Estimate <span class="math inline">\(P(y_{it} = j, y_{it&#39;} = j&#39;|x_i)\)</span> by iterative proportional fitting to calculate <span class="math inline">\(V_i\)</span></li>
 </ol>
 <aside class="notes">
 <p>t’ = “t prime”</p>
@@ -1587,16 +1627,16 @@ display:block!important;
 <div class="smaller80">
 <table class="caption-top">
 <colgroup>
-<col style="width: 21%">
-<col style="width: 57%">
-<col style="width: 11%">
-<col style="width: 9%">
+<col style="width: 20%">
+<col style="width: 54%">
+<col style="width: 16%">
+<col style="width: 8%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Structure</th>
 <th>Model for Log Local Odds Ratio</th>
-<th>Model Type</th>
+<th>Association Model</th>
 <th>Response</th>
 </tr>
 </thead>
@@ -1666,7 +1706,7 @@ display:block!important;
 </div>
 <div class="cell" data-layout-align="center">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 1.0644358 0.8748243 0.6171560 2.5821514 1.6521932 3.6752211</code></pre>
+<pre><code>[1] 1.0644358 0.8748243 0.6171560 2.5821523 1.6521932 3.6752214</code></pre>
 </div>
 </div>
 <p>There is a wide range in the strength of association, so should use time-specific RC model</p>
@@ -1697,7 +1737,7 @@ display:block!important;
 }</style></aside>
 </section></section>
 <section>
-<section id="modelling-the-mean-variance-relationship-for-in-vitro-diagnostic-assays" class="title-slide slide level1 center">
+<section id="modelling-the-mean-variance-relationship-for-in-vitro-diagnostic-assays" class="title-slide slide level1 coral-bg center">
 <h1>Modelling the mean-variance relationship for in-vitro diagnostic assays</h1>
 
 </section>
@@ -1894,15 +1934,19 @@ display:block!important;
 <p>where <span class="math inline">\(\nu_c\)</span> is the degrees of freedom for <span class="math inline">\(\hat{\sigma}_c^2\)</span>.</p>
 <p>Therefore we can fit precision profiles using a Gamma GNM with an identity link</p>
 <p><span class="math display">\[E(\hat{\sigma}_c^2) = \eta(\mu, \boldsymbol{\beta}) \qquad \text{Var}(\hat{\sigma}_c^2) = \frac{\phi}{\alpha_c} E(\hat{\sigma}_c^2)^2\]</span></p>
-<p>with weights <span class="math inline">\(\alpha_i = \nu_c/2\)</span>.</p>
+<p>with weights <span class="math inline">\(\alpha_c = \nu_c/2\)</span>.</p>
 </section>
 <section id="modelling-total-variability" class="slide level2">
 <h2>Modelling Total Variability</h2>
+<p>First use <code>anovaVCA()</code> to estimate variance components for each sample:</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href></a>vca <span class="ot">&lt;-</span> <span class="fu">anovaVCA</span>(result <span class="sc">~</span> site<span class="sc">/</span>day, <span class="at">Data =</span> CA19_9, <span class="at">by =</span> <span class="st">&quot;sample&quot;</span>)</span>
-<span id="cb17-2"><a href></a><span class="fu">library</span>(VFP)</span>
-<span id="cb17-3"><a href></a>total <span class="ot">&lt;-</span> <span class="fu">get_mat</span>(vca, <span class="at">vc =</span> <span class="st">&quot;total&quot;</span>)</span>
-<span id="cb17-4"><a href></a>total</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href></a>vca <span class="ot">&lt;-</span> <span class="fu">anovaVCA</span>(result <span class="sc">~</span> site<span class="sc">/</span>day, <span class="at">Data =</span> CA19_9, <span class="at">by =</span> <span class="st">&quot;sample&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then use <code>get_mat()</code> to get the mean, a total variance (<code>VC</code>), corresponding degrees of freedom (<code>DF</code>) and the coefficient of variation (as %, <code>CV</code>) for all samples:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href></a><span class="fu">library</span>(VFP)</span>
+<span id="cb18-2"><a href></a>total <span class="ot">&lt;-</span> <span class="fu">get_mat</span>(vca, <span class="at">vc =</span> <span class="st">&quot;total&quot;</span>)</span>
+<span id="cb18-3"><a href></a>total</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>               Mean        DF         VC        SD       CV
 sample.P1  12.08133 11.318142   1.086864  1.042528 8.629244
@@ -1913,53 +1957,54 @@ sample.P5 379.09067 16.709246  85.059893  9.222792 2.432872
 sample.Q6 414.28667  4.112871 241.089499 15.527057 3.747902</code></pre>
 </div>
 </div>
+<aside class="notes">
+<p>CV = sd/mean * 100 can also set <code>vc</code> to <code>site</code>, <code>site:day</code> or <code>error</code></p>
+<style type="text/css">
+span.MJX_Assistive_MathML {
+position:absolute!important;
+clip: rect(1px, 1px, 1px, 1px);
+padding: 1px 0 0 0!important;
+border: 0!important;
+height: 1px!important;
+width: 1px!important;
+overflow: hidden!important;
+display:block!important;
+}</style></aside>
 </section>
 <section id="example-model-7" class="slide level2">
 <h2>Example: Model 7</h2>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href></a>powfun7 <span class="ot">&lt;-</span> <span class="cf">function</span> (x) {</span>
-<span id="cb19-2"><a href></a>    <span class="fu">list</span>(<span class="at">predictors =</span> <span class="fu">list</span>(<span class="at">beta1 =</span> <span class="dv">1</span>, <span class="at">beta2 =</span> <span class="dv">1</span>, <span class="at">J =</span> <span class="dv">1</span>), </span>
-<span id="cb19-3"><a href></a>         <span class="at">variables =</span> <span class="fu">list</span>(<span class="fu">substitute</span>(x)), </span>
-<span id="cb19-4"><a href></a>         <span class="at">term =</span> <span class="cf">function</span>(predictors, variables) {</span>
-<span id="cb19-5"><a href></a>            <span class="fu">paste0</span>(predictors[<span class="dv">1</span>], <span class="st">&quot;+&quot;</span>, </span>
-<span id="cb19-6"><a href></a>                   predictors[<span class="dv">2</span>], <span class="st">&quot;*&quot;</span>, variables[<span class="dv">1</span>], <span class="st">&quot;^&quot;</span>, predictors[<span class="dv">3</span>])</span>
-<span id="cb19-7"><a href></a>         })</span>
-<span id="cb19-8"><a href></a>}</span>
-<span id="cb19-9"><a href></a><span class="fu">class</span>(powfun7) <span class="ot">&lt;-</span> <span class="st">&quot;nonlin&quot;</span></span>
-<span id="cb19-10"><a href></a>mod7 <span class="ot">&lt;-</span> <span class="fu">gnm</span>(VC <span class="sc">~</span> <span class="fu">powfun7</span>(Mean) <span class="sc">-</span> <span class="dv">1</span>, <span class="at">family =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>), <span class="at">weights =</span> DF<span class="sc">/</span><span class="dv">2</span>, </span>
-<span id="cb19-11"><a href></a>                <span class="at">data =</span> total, <span class="at">start =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb19-12"><a href></a><span class="fu">coef</span>(mod7)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href></a>powfun7 <span class="ot">&lt;-</span> <span class="cf">function</span> (x) {</span>
+<span id="cb20-2"><a href></a>    <span class="fu">list</span>(<span class="at">predictors =</span> <span class="fu">list</span>(<span class="at">beta1 =</span> <span class="dv">1</span>, <span class="at">beta2 =</span> <span class="dv">1</span>, <span class="at">J =</span> <span class="dv">1</span>), </span>
+<span id="cb20-3"><a href></a>         <span class="at">variables =</span> <span class="fu">list</span>(<span class="fu">substitute</span>(x)), </span>
+<span id="cb20-4"><a href></a>         <span class="at">term =</span> <span class="cf">function</span>(predictors, variables) {</span>
+<span id="cb20-5"><a href></a>            <span class="fu">paste0</span>(predictors[<span class="dv">1</span>], <span class="st">&quot;+&quot;</span>, </span>
+<span id="cb20-6"><a href></a>                   predictors[<span class="dv">2</span>], <span class="st">&quot;*&quot;</span>, variables[<span class="dv">1</span>], <span class="st">&quot;^&quot;</span>, predictors[<span class="dv">3</span>])</span>
+<span id="cb20-7"><a href></a>         })</span>
+<span id="cb20-8"><a href></a>}</span>
+<span id="cb20-9"><a href></a><span class="fu">class</span>(powfun7) <span class="ot">&lt;-</span> <span class="st">&quot;nonlin&quot;</span></span>
+<span id="cb20-10"><a href></a>mod7 <span class="ot">&lt;-</span> <span class="fu">gnm</span>(VC <span class="sc">~</span> <span class="fu">powfun7</span>(Mean) <span class="sc">-</span> <span class="dv">1</span>, <span class="at">family =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>), <span class="at">weights =</span> DF<span class="sc">/</span><span class="dv">2</span>, </span>
+<span id="cb20-11"><a href></a>                <span class="at">data =</span> total, <span class="at">start =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb20-12"><a href></a><span class="fu">coef</span>(mod7)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Coefficients:
      beta1      beta2          J 
 0.71739105 0.00563237 1.66887107 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href></a><span class="fu">deviance</span>(mod7)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href></a><span class="fu">deviance</span>(mod7)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 1.758392</code></pre>
 </div>
 </div>
 </section>
-<section id="selecting-best-model" class="slide level2">
-<h2>Selecting best model</h2>
+<section id="selecting-variance-function" class="slide level2">
+<h2>Selecting Variance Function</h2>
 <p><code>fit_vfp()</code> will fit all 9 models and select best fitting by AIC</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href></a>all_mod <span class="ot">&lt;-</span> <span class="fu">fit_vfp</span>(total)</span>
-<span id="cb23-2"><a href></a>all_mod</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href></a>all_mod <span class="ot">&lt;-</span> <span class="fu">fit_vfp</span>(total, <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb24-2"><a href></a>all_mod</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell" data-layout-align="center">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Model 1  ... finished.
-Model 2  ... finished.
-Model 3  ... finished.
-Model 4  ... finished.
-Model 5  ... skipped!
-Model 6  ... finished.
-Model 7  ... finished.
-Model 8  ... finished.
-Model 9  ... finished.</code></pre>
-</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 
@@ -1999,6 +2044,9 @@ width: 1px!important;
 overflow: hidden!important;
 display:block!important;
 }</style></aside>
+</section>
+<section id="summary" class="slide level2">
+<h2>Summary</h2>
 
 </section></section>
     </div>

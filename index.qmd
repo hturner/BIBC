@@ -52,21 +52,21 @@ When I was preparing for this talk, I realised than gnm is 20 years old!
 In a Generalized *Linear* Model (GLM) we have
 
 $$
-g(E(y)) = \beta_0 + \beta_1 x_{1} + ... + \beta_p x_{p}
+g(E(y_i)) = g(\mu_i) = \beta_0 + \beta_1 x_{1i} + ... + \beta_p x_{pi}
 $$
 
 and 
 
 $$
-\text{Var}(y) = \phi V(\mu)
+\text{Var}(y_i) = \phi a_i V(\mu_i)
 $$
 
 ::: fragment
 A GNM extends this to 
 $$
-g(\mu) = \eta(\boldsymbol{x}; \bm{\beta})
+g(\mu_i) = \eta(\boldsymbol{x}_i; \boldsymbol{\beta})
 $$
-where $\eta(\bm{x}; \bm{\beta})$ is nonlinear in the parameters $\bm{\beta}$.
+where $\eta(\boldsymbol{x}; \boldsymbol{\beta})$ is nonlinear in the parameters $\boldsymbol{\beta}$.
 :::
 
 :::{.notes}
@@ -80,7 +80,7 @@ Should I use $\phi a V(\mu)$ here?
 ::: fragment
   ... an extension of Nonlinear Least Squares
 
-  * using a nonlinear function of a continuous variable to model a 
+  * using a link function to model a 
   non-Gaussian response
 :::
 
@@ -91,12 +91,19 @@ Should I use $\phi a V(\mu)$ here?
   model and interpretable model.
 :::
 
-## Models
+## Classic Models that are GNMs
+
+ - Goodman's RC model for 2 way tables (JASA, 74, 1979) 
+    $$\log \mu_{rc} = \alpha_r + \beta_c + \gamma_r\delta_c$$
+ - Stereotype model for ordered categorical data (JRSSB, 46, 1984)
+    $$pr(y_i = c | \boldsymbol{x}_i) = \frac{\exp(\beta_{0c} + \gamma_c \boldsymbol{\beta}^T \boldsymbol{x}_i)}
+    {\sum_r\exp(\beta_{0r} + \gamma_r \boldsymbol{\beta}^T \boldsymbol{x}_i)}$$
+ - Lee-Carter age-specific mortality model (JASA, 87, 1992)
+ $$\log(\mu_{ay}/e_{ay}) = \alpha_a + \beta_a \gamma_y$$
 
 ::: notes
-Some examples of models this framework covers:
- - Goodman's RC (RC(1), RC(2), Homog)
- - GAMMI (more from agri pov)
+Goodman's RC aka GAMMI models to analyse genotype-by-environment interactions 
+(maybe more general ressponse, e.g. crop yield) 
  - Stereotype (medical pov, eliminate)
  - Lee Carter (age-specific mortality models)
 Other, no need to highlight here: Diag Ref, UNIDIFF, sum of exponentials]
@@ -104,11 +111,11 @@ Other, no need to highlight here: Diag Ref, UNIDIFF, sum of exponentials]
 https://research-repository.uwa.edu.au/en/publications/pollen-mediated-gene-flow-from-glyphosate-resistant-common-waterh
 :::
 
-# Conditional Poisson models to analyse case-crossover studies in epidemiology
+# Poisson models to analyse case-crossover studies in epidemiology {.blue-bg}
 
 ## Example: Effect of Ozone Pollution on Deaths in London 
 
-Example data (Bhaskaran et al, International Journal of Epidemiology 2013, 42: 1187-1195)
+Example data (Bhaskaran et al, International Journal of Epidemiology 42, 2013)
 
 * `date` daily from 2002-01-01 to 2006-12-31
 * `ozone` daily average, µg/m$^3$
@@ -134,10 +141,6 @@ Associations over short timescales more likely to represent real causal relation
 I think the model we are fitting is Option 1 in the time regressions paper. This is
 equivalent to the case-control data
 :::
-
-## Scatterplot
-
-Need to look over short periods
 
 ## Case cross-over data
 
@@ -200,7 +203,7 @@ select(london_expanded, record, date, weekday, case, weight, ozone) |>
 Given that one case occurs in each stratum, we can model the event $D_{i,s}$ 
 that the death in stratum $s$ occurs on day $i$ as follows:
 
-$$D_{i,s} \sim \text{Bernoulli} \left(\pi_i = \frac{\exp \left\{\beta^Tx_i\right\}}{\sum_{j \in s(i)} \exp \left\{ \beta^T x_j\right\}}\right)$$
+$$D_{i,s} \sim \text{Bernoulli} \left(\pi_i = \frac{\exp \left\{\boldsymbol{\beta}^T\boldsymbol{x}_i\right\}}{\sum_{j \in s(i)} \exp \left\{ \boldsymbol{\beta}^T \boldsymbol{x}_j\right\}}\right)$$
 In our London example, we have:
 
 * 8034 rows: 1826 dates $\times$ 4-5 of each weekday per month
@@ -210,7 +213,7 @@ In our London example, we have:
 P(i is the case in stratum s) = pi_i
 :::
 
-## Conditional logistic model in R
+## Conditional logistic model in R {visibility="hidden"}
 
 Because we have weights, need to fit as Cox proportional hazards model
 ```{r}
@@ -225,31 +228,115 @@ This is a bit of a distraction here
 
 ## Equivalent Poisson model
 
-Equivalently, we can fit a Poisson model to $Y_{i,s}$, the number of deaths on 
+Equivalently, we can fit a Poisson model to $y_{i,s}$, the number of deaths on 
 date $i$ in stratum $s$, where
 
 $$
-E(Y_i) = \exp(\alpha_s + \beta^Tx_i)
+E(y_i) = \exp(\alpha_s + \boldsymbol{\beta}^T\boldsymbol{x}_i)
 $$
 In this case we have
 
 * 1826 rows, one for each date
-* 2 parameters of interest plus 1826 nuisance parameters!
+* 2 parameters of interest plus $5\times 12 \times 7 = 420$ nuisance parameters!
 
 ::: notes
 Could give some pros here (adjusting for overdispersion and auto-correlation )
  Levy and others (2001) point out equivalence
 :::
 
-## Eliminate feature
+## Fitting GLMs
 
+GLMs are estimated with an IWLS algorithm, where
 
+$$
+         \boldsymbol{\beta}^{(r + 1)} = \left(\boldsymbol{X}^{T}\boldsymbol{W}^{(r)}\boldsymbol{X}\right)^{-1}\boldsymbol{X}^{T}\boldsymbol{W}^{(r)}\boldsymbol{z}^{(r)}
+$$
 
-::: notes
-Could go into depth about augmented least squares in gnm, or give reduced 
-explanation about structure of design matrix and how we only need to compute on 
-p x p matrix
-:::
+{gnm} uses the same approach for GNMs, with a generalized inverse to avoid 
+specifying identifiability constraints.
+
+{gnm} also has an "eliminate" feature, to efficient estimate parameters of a 
+nuisance factor, as in the Poisson model for case-crossover data.
+
+## Augmented Least Squares
+
+For an ordinary least squares model
+$$
+\begin{align*}
+        \left[(\boldsymbol{y}|\boldsymbol{X})^T(\boldsymbol{y}|\boldsymbol{X})\right]^{-1} &=
+        \begin{pmatrix}
+            \boldsymbol{y}^T\boldsymbol{y} & \boldsymbol{y}^T\boldsymbol{X} \\
+            \boldsymbol{X}^T\boldsymbol{y} & \boldsymbol{X}^T\boldsymbol{X} \\
+        \end{pmatrix}^{-1} =
+        \begin{pmatrix}
+            \boldsymbol{A}_{11} & \boldsymbol{A}_{12} \\
+            \boldsymbol{A}_{21} & \boldsymbol{A}_{22} \\
+        \end{pmatrix}
+    \end{align*}
+$$
+    where $\boldsymbol{A}_{11}, \boldsymbol{A}_{12}$ and $\boldsymbol{A}_{22}$ are functions of $\boldsymbol{y}^T\boldsymbol{y}$, $\boldsymbol{X}^T\boldsymbol{y}$ and $\boldsymbol{X}^T\boldsymbol{X}$.
+
+Then it can be shown that
+$$
+    \begin{align*}
+        \hat{\boldsymbol{\beta}} &= (\boldsymbol{X}^T\boldsymbol{X})^{-1}\boldsymbol{X}^T\boldsymbol{y}
+        = - \frac{\boldsymbol{A}_{21}}{\boldsymbol{A}_{11}}
+    \end{align*}
+$$
+requiring only the first row (column) of the inverse to be found.
+
+## Application to Nuisance Parameters I
+
+Let
+$$
+\tilde{\boldsymbol{X}} = \boldsymbol{W}^{\frac{1}{2}}(\boldsymbol{z}|\boldsymbol{X}) =
+(\boldsymbol{U} | \boldsymbol{V})
+$$
+
+ * $\boldsymbol{V}$ is the $nk \times n$ matrix of dummy variables corresponding 
+ to the nuisance factor with $n$ levels.
+ * $\boldsymbol{U}$ is a $nk \times (p + 1)$ matrix where $p$ is the number of
+model parameters, typically with $n >> p$.
+
+## Application to Nuisance Parameters II
+
+Then
+$$
+    \begin{align*}
+        (\tilde{\boldsymbol{X}}^T\tilde{\boldsymbol{X}})^{-} &=
+        \begin{pmatrix}
+            \boldsymbol{U}^T\boldsymbol{U} & \boldsymbol{U}^T\boldsymbol{V} \\
+            \boldsymbol{V}^T\boldsymbol{U} & \boldsymbol{V}^T\boldsymbol{V} \\
+        \end{pmatrix}^{-}
+        = \begin{pmatrix}
+            \boldsymbol{B}_{11} & \boldsymbol{B}_{12} \\
+            \boldsymbol{B}_{21} & \boldsymbol{B}_{22} \\
+        \end{pmatrix}
+    \end{align*}
+$$
+Again, only the first row (column) of this generalised inverse is required to
+estimate $\hat{\boldsymbol{\beta}}$, so we are only interested in $\boldsymbol{B}_{11}$ and
+    $\boldsymbol{B}_{12}$.
+    
+$$  
+    \begin{align*}
+        \boldsymbol{B}_{11} &= (\boldsymbol{U}^T\boldsymbol{U} -
+        \boldsymbol{U}^T\boldsymbol{V}(\boldsymbol{V}^T\boldsymbol{V})^{-1}\boldsymbol{V}^T\boldsymbol{U})^{-} \\
+        \boldsymbol{B}_{12} &= - (\boldsymbol{V}^T\boldsymbol{V})^{-1}\boldsymbol{V}^T\boldsymbol{U}\boldsymbol{B}_{11}
+    \end{align*}
+$$
+
+## Elimination of the Nuisance Factor
+
+* $\boldsymbol{U}^T\boldsymbol{U}$ is $p \times p$: not expensive to compute.
+* $\boldsymbol{V}^T\boldsymbol{V}$ is diagonal: the non-zero elements can be computed
+        directly
+* $\boldsymbol{V}^T\boldsymbol{U}$ is equivalent to aggregating the rows of $\boldsymbol{U}$ by levels of the nuisance factor
+
+So we do not need to construc the large $nk \times n$ matrix $\bm{V}$. 
+
+We only need to construct the $nk \times (p + 1)$ matrix $\boldsymbol{U}$, 
+saving memory and reducing the computational burden.
 
 ## Example
 
@@ -270,7 +357,7 @@ toc()
 coef(poisson_gnm)
 ```
 
-# Models for longitudinal categorical data
+# Models for longitudinal categorical data {.yellow-bg}
 
 ## Longitudinal categorical data
 
@@ -282,12 +369,12 @@ We have repeated measures of a categorical outcome for multiple subjects, e.g.
 | 2       | None   | None       | Severe     |
 | 3       | Mild   | Moderate   | Moderate   |
 
-Let $Y_{it} \in \left\{1, ..., J\right\}$ be the response for subject $i$ at time $t$.
+Let $y_{it} \in \left\{1, ..., J\right\}$ be the response for subject $i$ at time $t$.
 
 We want to model the marginal probabilities
 
-$$P(Y_{it} = j | \boldsymbol{x}_{it})$$
-Regarding the correlation between repeated measures for the same subject as a nuisance.
+$$P(y_{it} = j | \boldsymbol{x}_{it})$$
+regarding the correlation between repeated measures as a nuisance.
 
 ::: notes
 Marginal (univariate) probabilities for one time point vs multivariate over all times jointly
@@ -296,29 +383,29 @@ On average, how do the probabilities change with covariates
 
 ## Indicator vector representation
 
-Representing the categorical response $Y_{it}$ as a vector of integers:
+Representing the categorical response $y_{it}$ as a vector of integers:
 
-$$\boldsymbol{Y}_{it} = (Y_{i1}, ..., Y_{iJ})^\top$$
+$$\boldsymbol{y}_{it} = (y_{i1}, ..., y_{iJ})^\top$$
 
 where
 
-$$Y_{ij} =
+$$y_{ij} =
 \begin{cases}
-1, & \text{if } Y_i = j, \\
+1, & \text{if } y_i = j, \\
 0, & \text{otherwise.}
 \end{cases}$$
 Then the expected value is the vector of category probabilities we want to model
-$$E[\boldsymbol{Y}_{it} | \boldsymbol{x}_{it}] = 
-\left( P(Y_{it} = 1 | \boldsymbol{x}_{it}),\, P(Y_{it} = 2 | \boldsymbol{x}_{it}),\, \dots,\, P(Y_{it} = J | \boldsymbol{x}_{it}) \right)^\top = \boldsymbol{\pi}_{it}$$
+$$E[\boldsymbol{y}_{it} | \boldsymbol{x}_{it}] = 
+\left( P(y_{it} = 1 | \boldsymbol{x}_{it}),\, P(y_{it} = 2 | \boldsymbol{x}_{it}),\, \dots,\, P(y_{it} = J | \boldsymbol{x}_{it}) \right)^\top = \boldsymbol{\pi}_{it}$$
 
 ## Generalized Estimating Equation Approach
 
-1. Model the marginal mean $E[\boldsymbol{Y}_{it} | \boldsymbol{x}_{it}] = \boldsymbol{\pi}_{it}(\boldsymbol{\beta})$
+1. Model the marginal mean $E[\boldsymbol{y}_{it} | \boldsymbol{x}_{it}] = \boldsymbol{\pi}_{it}(\boldsymbol{\beta})$
 2. Stack the repeated outcomes for a subject: 
-$\boldsymbol{Y}_i = (\boldsymbol{Y}_{i1}^\top, ..., \boldsymbol{Y}_{iT}^\top)^\top$
-3. Specify a "working" covariance matrix: $\text{Var}(\boldsymbol{Y}_i) = \boldsymbol{V}_i(\boldsymbol{\beta}, \boldsymbol{\alpha})$
+$\boldsymbol{y}_i = (\boldsymbol{y}_{i1}^\top, ..., \boldsymbol{y}_{iT}^\top)^\top$
+3. Specify a "working" covariance matrix: $\text{Var}(\boldsymbol{y}_i) = \boldsymbol{V}_i(\boldsymbol{\beta}, \boldsymbol{\alpha})$
 4. Solve the estimating equation
-$$\boldsymbol{U(\boldsymbol{\beta}, \boldsymbol{\alpha})}= \sum_i \mathbf{D}_i^{\top} \mathbf{V}_i^{-1} (\mathbf{Y}_i - \boldsymbol{\pi}_i) = \boldsymbol{0}, 
+$$\boldsymbol{U(\boldsymbol{\beta}, \boldsymbol{\alpha})}= \sum_i \\boldsymbolathbf{D}_i^{\top} \\boldsymbolathbf{V}_i^{-1} (\\boldsymbolathbf{y}_i - \boldsymbol{\pi}_i) = \boldsymbol{0}, 
 \quad 
 \mathbf{D}_i = \frac{\partial \boldsymbol{\pi}_i}{\partial \boldsymbol{\beta}^\top}$$
 
@@ -336,7 +423,7 @@ A univariate multinomial model can provide the required model for $\boldsymbol{\
 
 * Cumulative link model for ordinal outcomes
 
-    $$F^{-1}\bigl[P(Y_{it} \le j \mid \mathbf{x}_{it})\bigr] = \beta_{j0} + \boldsymbol{\beta}^\top \mathbf{x}_{it}, 
+    $$F^{-1}\bigl[P(y_{it} \le j \mid \mathbf{x}_{it})\bigr] = \beta_{j0} + \boldsymbol{\beta}^\top \mathbf{x}_{it}, 
 \quad j = 1, \dots, J-1$$
     from which $\pi_{itj}$ can be derived as differences between cumulative probabilities.
     
@@ -375,7 +462,7 @@ f_{jj'g} & f_{j(j'+ 1)g} \\
 f_{(j+ 1)j'g} & f_{(j + 1)(j'+ 1)g}
 \end{matrix}\right]$$
 i.e. $\log(\theta_{jj'g}) = \phi^g (\mu^g_j - \mu^g_{j+1}) (\mu^g_{j'} - \mu^g_{j'+1})$
-4. Estimate $P(Y_{it} = j, Y_{it'} = j'|x_i)$ by iterative proportional fitting to calculate $V_i$
+4. Estimate $P(y_{it} = j, y_{it'} = j'|x_i)$ by iterative proportional fitting to calculate $V_i$
 
 ::: notes
 t' = "t prime"
@@ -386,13 +473,13 @@ t' = "t prime"
 The model for $\log(\theta_{jj'g})$ can be further simplified:
 
 ::: smaller80
-| Structure             | Model for Log Local Odds Ratio                               | Model Type | Response |
-|-----------------------|--------------------------------------------------------------|------------|----------|
-| Independent           | 1                                                            | GLM        | Any      |
-| Uniform               | $\phi$                                                       | GLM        | Ordinal  |
-| Category exchangeable | $\phi^g$                                                     | GLM        | Ordinal  |
-| Time exchangeable     | $\phi (\mu_j - \mu_{j+1}) (\mu_{j'} - \mu_{j'+1})$           | GNM        | Any      |
-| Time-specific RC      | $\phi^g (\mu^g_j - \mu^g_{j+1}) (\mu^g_{j'} - \mu^g_{j'+1})$ | GNM        | Any      |
+| Structure             | Model for Log Local Odds Ratio                               | Association Model | Response |
+|-----------------------|--------------------------------------------------------------|-------------------|----------|
+| Independent           | 1                                                            | GLM               | Any      |
+| Uniform               | $\phi$                                                       | GLM               | Ordinal  |
+| Category exchangeable | $\phi^g$                                                     | GLM               | Ordinal  |
+| Time exchangeable     | $\phi (\mu_j - \mu_{j+1}) (\mu_{j'} - \mu_{j'+1})$           | GNM               | Any      |
+| Time-specific RC      | $\phi^g (\mu^g_j - \mu^g_{j+1}) (\mu^g_{j'} - \mu^g_{j'+1})$ | GNM               | Any      |
 :::
 
 We can select an adequate model by fitting the model with $\phi_g$ and using the simpler model if these parameters do not vary much.
@@ -444,7 +531,7 @@ gee_criteria(fit_ind, fit_exch, fit_rc)[,1:3]
 a lower QIC tells you that overall, the time-exchangeable structure captures the dependence pattern better and produces a more efficient model.
 :::
 
-# Modelling the mean-variance relationship for in-vitro diagnostic assays
+# Modelling the mean-variance relationship for in-vitro diagnostic assays {.coral-bg}
 
 ## Performance of In-Vitro Diagnostic (IVD) Assays
 
@@ -524,16 +611,27 @@ Therefore we can fit precision profiles using a Gamma GNM with an identity link
 
 $$E(\hat{\sigma}_c^2) = \eta(\mu, \boldsymbol{\beta}) \qquad \text{Var}(\hat{\sigma}_c^2) = \frac{\phi}{\alpha_c} E(\hat{\sigma}_c^2)^2$$
 
-with weights $\alpha_i = \nu_c/2$.
+with weights $\alpha_c = \nu_c/2$.
 
 ## Modelling Total Variability
 
+First use `anovaVCA()` to estimate variance components for each sample:
 ```{r}
 vca <- anovaVCA(result ~ site/day, Data = CA19_9, by = "sample")
+```
+
+Then use `get_mat()` to get the mean, a total variance (`VC`), corresponding degrees of freedom (`DF`) 
+and the coefficient of variation (as %, `CV`) for all samples:
+```{r}
 library(VFP)
 total <- get_mat(vca, vc = "total")
 total
 ```
+
+:::{.notes}
+CV = sd/mean * 100
+can also set `vc` to `site`, `site:day` or `error`
+:::
 
 ## Example: Model 7
 
@@ -552,19 +650,22 @@ mod7 <- gnm(VC ~ powfun7(Mean) - 1, family = Gamma(link = "identity"), weights =
 coef(mod7)
 deviance(mod7)
 ```
-## Selecting best model
+## Selecting Variance Function
 
 `fit_vfp()` will fit all 9 models and select best fitting by AIC
 
 ```{r}
 #| eval: false
-all_mod <- fit_vfp(total)
+all_mod <- fit_vfp(total, quiet = TRUE)
 all_mod
+```
+```{r}
+#| include: false
+all_mod <- fit_vfp(total, quiet = TRUE)
 ```
 
 ```{r}
 #| echo: false
-all_mod <- fit_vfp(total)
 all_mod
 ```
 
@@ -584,3 +685,6 @@ When you combine multiple random effects (each with its own variance estimate an
 
 To account for this, VCA uses the Satterthwaite approximation to compute the effect DF for the total variance
 :::
+
+## Summary
+
