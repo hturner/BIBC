@@ -1482,13 +1482,15 @@ display:block!important;
 </section>
 <section id="elimination-of-the-nuisance-factor" class="slide level2">
 <h2>Elimination of the Nuisance Factor</h2>
-<p>The structure of <span class="math inline">\(\tilde{\boldsymbol{X}\)</span> makes things simpler</p>
+<p>The structure of <span class="math inline">\(\tilde{\boldsymbol{X}}\)</span> makes things simpler</p>
 <ul>
 <li><span class="math inline">\(\boldsymbol{U}^T\boldsymbol{U}\)</span> is <span class="math inline">\((p + 1) \times (p + 1)\)</span>: not expensive to compute.</li>
 <li><span class="math inline">\(\boldsymbol{V}^T\boldsymbol{V}\)</span> is <span class="math inline">\(n \times n\)</span> diagonal: the non-zero elements can be computed directly.</li>
 <li><span class="math inline">\(\boldsymbol{V}^T\boldsymbol{U}\)</span> is <span class="math inline">\(n \times (p + 1)\)</span>: equivalent to aggregating the rows of <span class="math inline">\(\boldsymbol{U}\)</span> by levels of the nuisance factor.</li>
 </ul>
-<p>So we do not need to construct the large <span class="math inline">\(nk \times n\)</span> matrix <span class="math inline">\(\boldsymbol{V}\)</span>.</p>
+<div class="fragment center-h">
+<p><br> <strong>So we do not need to construct the large <span class="math inline">\(nk \times n\)</span> matrix <span class="math inline">\(\boldsymbol{V}\)</span>.</strong></p>
+</div>
 <aside class="notes">
 <p>We only need to construct the <span class="math inline">\(nk \times (p + 1)\)</span> matrix <span class="math inline">\(\boldsymbol{U}\)</span>, saving memory and reducing the computational burden.</p>
 <style type="text/css">
@@ -1512,7 +1514,7 @@ display:block!important;
 <span id="cb3-3"><a href></a>                   <span class="at">data =</span> london, <span class="at">family =</span> poisson)</span>
 <span id="cb3-4"><a href></a><span class="fu">toc</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>1.183 sec elapsed</code></pre>
+<pre><code>1.198 sec elapsed</code></pre>
 </div>
 </div>
 <div class="fragment">
@@ -1819,7 +1821,7 @@ display:block!important;
 </div>
 <div class="cell" data-layout-align="center">
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 1.0644358 0.8748243 0.6171560 2.5821524 1.6521933 3.3085473</code></pre>
+<pre><code>[1] 1.0644358 0.8748243 0.6171560 2.5821515 1.6521935 3.6752211</code></pre>
 </div>
 </div>
 <p>There is a wide range in the strength of association, so should use time-specific RC model</p>

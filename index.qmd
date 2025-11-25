@@ -359,7 +359,7 @@ $$
 
 ## Elimination of the Nuisance Factor
 
-The structure of $\tilde{\boldsymbol{X}$ makes things simpler
+The structure of $\tilde{\boldsymbol{X}}$ makes things simpler
 
 * $\boldsymbol{U}^T\boldsymbol{U}$ is $(p + 1) \times (p + 1)$: not expensive to compute.
 * $\boldsymbol{V}^T\boldsymbol{V}$ is $n \times n$ diagonal: the non-zero
@@ -367,7 +367,10 @@ elements can be computed directly.
 * $\boldsymbol{V}^T\boldsymbol{U}$ is $n \times (p + 1)$: equivalent to 
 aggregating the rows of $\boldsymbol{U}$ by levels of the nuisance factor.
 
-So we do not need to construct the large $nk \times n$ matrix $\boldsymbol{V}$. 
+::: {.fragment .center-h}
+<br>
+**So we do not need to construct the large $nk \times n$ matrix $\boldsymbol{V}$.**
+:::
 
 ::: notes
 We only need to construct the $nk \times (p + 1)$ matrix $\boldsymbol{U}$, 
