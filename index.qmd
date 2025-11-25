@@ -1,5 +1,5 @@
 ---
-title: Uses of gnm for Generalized (Non)linear Modelling
+title: Uses of {gnm} for Generalized (Non)linear Modelling
 author: Heather Turner
 affiliation: University of Warwick
 date: "2025-11-26"
@@ -25,7 +25,7 @@ library(tictoc)
 
 :::: columns
 ::: {.column width="60%"}
-{gnm} was released on CRAN 20 years ago 🎉
+{gnm} (Turner and Firth, 2007) was released on CRAN 20 years ago 🎉
 
 ::: fragment
 Time to 
@@ -45,7 +45,7 @@ Time to
 When I was preparing for this talk, I realised than gnm is 20 years old!
 :::
 
-# Introduction to GNMs and {gnm}
+# Introduction to GNMs and {gnm} {.lavendar-bg}
 
 ## Generalized Nonlinear Models (GNMs)
 
@@ -66,7 +66,7 @@ A GNM extends this to
 $$
 g(\mu_i) = \eta(\boldsymbol{x}_i; \boldsymbol{\beta})
 $$
-where $\eta(\boldsymbol{x}; \boldsymbol{\beta})$ is nonlinear in the parameters $\boldsymbol{\beta}$.
+where $\eta(\boldsymbol{x}_i; \boldsymbol{\beta})$ is nonlinear in the parameters $\boldsymbol{\beta}$.
 :::
 
 :::{.notes}
@@ -91,14 +91,18 @@ Should I use $\phi a V(\mu)$ here?
   model and interpretable model.
 :::
 
+::: {.fragment .center-h .larger125}
+**{gnm} focuses on the latter**
+:::
+
 ## Classic Models that are GNMs
 
- - Goodman's RC model for 2 way tables (JASA, 74, 1979) 
+ - Goodman's RC model for 2 way tables (Goodman, 1979, *JASA*) 
     $$\log \mu_{rc} = \alpha_r + \beta_c + \gamma_r\delta_c$$
- - Stereotype model for ordered categorical data (JRSSB, 46, 1984)
+ - Stereotype model for ordered categorical data (Anderson, 1984, *JRSSB*)
     $$pr(y_i = c | \boldsymbol{x}_i) = \frac{\exp(\beta_{0c} + \gamma_c \boldsymbol{\beta}^T \boldsymbol{x}_i)}
     {\sum_r\exp(\beta_{0r} + \gamma_r \boldsymbol{\beta}^T \boldsymbol{x}_i)}$$
- - Lee-Carter age-specific mortality model (JASA, 87, 1992)
+ - Lee-Carter age-specific mortality model (Lee and Carter, 1992, *JASA*)
  $$\log(\mu_{ay}/e_{ay}) = \alpha_a + \beta_a \gamma_y$$
 
 ::: notes
@@ -111,16 +115,17 @@ Other, no need to highlight here: Diag Ref, UNIDIFF, sum of exponentials]
 https://research-repository.uwa.edu.au/en/publications/pollen-mediated-gene-flow-from-glyphosate-resistant-common-waterh
 :::
 
-# Poisson models to analyse case-crossover studies in epidemiology {.blue-bg}
+# Poisson models to analyse case-crossover studies {.blue-bg}
 
-## Example: Effect of Ozone Pollution on Deaths in London 
+## Effect of Ozone Pollution on Deaths in London 
 
-Example data (Bhaskaran et al, International Journal of Epidemiology 42, 2013)
+Armstrong et al (2014, *BMC Medical Research Methodology*) provide the 
+following example data original from Bhaskaran et al, 2013,
+*International Journal of Epidemiology*:
 
 * `date` daily from 2002-01-01 to 2006-12-31
 * `ozone` daily average, µg/m$^3$
 * `temperature` $^\circ$C
-* `relative_humidity` %
 * `numdeaths`
 
 ```{r}
@@ -174,28 +179,32 @@ london_expanded <- cbind(case_control,
 rownames(london_expanded) <- NULL
 ```
 
-Given records per day (temperature and relative humidity not shown)
+Define month-weekday strata:
 
 ::: {.smaller90}
 ```{r}
 #| label: london-slice
 #| echo: false
-select(london, record, date, stratum, numdeaths, ozone) |>
-  slice(1:2) |>
+select(london, record, date, weekday, stratum, numdeaths, ozone, temperature) |>
+  slice(1) |>
   kable(digits = 2)
 ```
 :::
 
-Expand to make case-control sets within month-weekday strata:
+Expand each record to make case-control sets within the strata:
 
 ::: {.smaller90}
 ```{r}
 #| label: london_-slice_expanded
 #| echo: false
-select(london_expanded, record, date, weekday, case, weight, ozone) |>
+select(london_expanded, record, date, weekday, case, weight, ozone, temperature) |>
   slice(1:5) |>
   kable(digits = 2)
 ```
+:::
+
+:::{.notes}
+The strata are used to control for slow or regular (e.g. day-of-week) changes in underlying risk which might confound associations with the exposure of interest
 :::
 
 ## Conditional logistic model
@@ -228,12 +237,15 @@ This is a bit of a distraction here
 
 ## Equivalent Poisson model
 
-Equivalently, we can fit a Poisson model to $y_{i,s}$, the number of deaths on 
-date $i$ in stratum $s$, where
+Armstrong et al (2014) propose to fit the equivalent Poisson model to 
+$y_{i,s}$, the number of deaths on date $i$ in stratum $s$, where
 
 $$
 E(y_i) = \exp(\alpha_s + \boldsymbol{\beta}^T\boldsymbol{x}_i)
 $$
+and $\alpha_s$ are nuisance parameters that ensure the multinomial denominators 
+are matched.
+
 In this case we have
 
 * 1826 rows, one for each date
@@ -242,6 +254,8 @@ In this case we have
 ::: notes
 Could give some pros here (adjusting for overdispersion and auto-correlation )
  Levy and others (2001) point out equivalence
+ 
+ 5 years, 12 months, 7 days
 :::
 
 ## Fitting GLMs
@@ -249,14 +263,24 @@ Could give some pros here (adjusting for overdispersion and auto-correlation )
 GLMs are estimated with an IWLS algorithm, where
 
 $$
-         \boldsymbol{\beta}^{(r + 1)} = \left(\boldsymbol{X}^{T}\boldsymbol{W}^{(r)}\boldsymbol{X}\right)^{-1}\boldsymbol{X}^{T}\boldsymbol{W}^{(r)}\boldsymbol{z}^{(r)}
+         \hat{\boldsymbol{\beta}}^{(r + 1)} = \left(\boldsymbol{X}^{T}\boldsymbol{W}^{(r)}\boldsymbol{X}\right)^{-1}\boldsymbol{X}^{T}\boldsymbol{W}^{(r)}\boldsymbol{z}^{(r)}
 $$
 
-{gnm} uses the same approach for GNMs, with a generalized inverse to avoid 
-specifying identifiability constraints.
+::: fragment
+For GNMs, {gnm}: 
 
-{gnm} also has an "eliminate" feature, to efficient estimate parameters of a 
-nuisance factor, as in the Poisson model for case-crossover data.
+* Uses a **generalized inverse** to avoid specifying identifiability constraints 
+for nonlinear terms.
+
+* Can **eliminate** parameters of a nuisance factor from $\boldsymbol{X}$, for 
+efficient estimation.
+:::
+
+::: {.notes}
+X is the design matrix
+W diag matrix of working weights
+z is the working response (constructed from y, mu, eta and deta/dmu)
+:::
 
 ## Augmented Least Squares
 
@@ -276,7 +300,8 @@ $$
 $$
     where $\boldsymbol{A}_{11}, \boldsymbol{A}_{12}$ and $\boldsymbol{A}_{22}$ are functions of $\boldsymbol{y}^T\boldsymbol{y}$, $\boldsymbol{X}^T\boldsymbol{y}$ and $\boldsymbol{X}^T\boldsymbol{X}$.
 
-Then it can be shown that
+:::fragment
+It can be shown that
 $$
     \begin{align*}
         \hat{\boldsymbol{\beta}} &= (\boldsymbol{X}^T\boldsymbol{X})^{-1}\boldsymbol{X}^T\boldsymbol{y}
@@ -284,6 +309,7 @@ $$
     \end{align*}
 $$
 requiring only the first row (column) of the inverse to be found.
+:::
 
 ## Application to Nuisance Parameters I
 
@@ -296,7 +322,12 @@ $$
  * $\boldsymbol{V}$ is the $nk \times n$ matrix of dummy variables corresponding 
  to the nuisance factor with $n$ levels.
  * $\boldsymbol{U}$ is a $nk \times (p + 1)$ matrix where $p$ is the number of
-model parameters, typically with $n >> p$.
+model parameters.
+
+::: {.fragment .center-h}
+<br>
+**Typically $\boldsymbol{n} \boldsymbol{>>} \boldsymbol{p}$**
+:::
 
 ## Application to Nuisance Parameters II
 
@@ -328,17 +359,22 @@ $$
 
 ## Elimination of the Nuisance Factor
 
-* $\boldsymbol{U}^T\boldsymbol{U}$ is $p \times p$: not expensive to compute.
-* $\boldsymbol{V}^T\boldsymbol{V}$ is diagonal: the non-zero elements can be computed
-        directly
-* $\boldsymbol{V}^T\boldsymbol{U}$ is equivalent to aggregating the rows of $\boldsymbol{U}$ by levels of the nuisance factor
+The structure of $\tilde{\boldsymbol{X}$ makes things simpler
 
-So we do not need to construc the large $nk \times n$ matrix $\bm{V}$. 
+* $\boldsymbol{U}^T\boldsymbol{U}$ is $(p + 1) \times (p + 1)$: not expensive to compute.
+* $\boldsymbol{V}^T\boldsymbol{V}$ is $n \times n$ diagonal: the non-zero
+elements can be computed directly.
+* $\boldsymbol{V}^T\boldsymbol{U}$ is $n \times (p + 1)$: equivalent to 
+aggregating the rows of $\boldsymbol{U}$ by levels of the nuisance factor.
 
+So we do not need to construct the large $nk \times n$ matrix $\boldsymbol{V}$. 
+
+::: notes
 We only need to construct the $nk \times (p + 1)$ matrix $\boldsymbol{U}$, 
 saving memory and reducing the computational burden.
+:::
 
-## Example
+## Application to the Case-Crossover Poisson Model
 
 Fit with standard GLM function
 
@@ -349,13 +385,35 @@ poisson_glm <- glm(numdeaths ~ ozone + temperature + stratum,
 toc()
 ```
 
+::: fragment
 ```{r}
 tic()
 poisson_gnm <- gnm(numdeaths ~ ozone + temperature, eliminate = stratum, 
                    data = london, family = poisson)
 toc()
+```
+:::
+
+::: fragment
+```{r}
 coef(poisson_gnm)
 ```
+:::
+
+## Explore further
+
+Methodology and London example:
+
+* Armstrong et al (2014) [Conditional Poisson models: a flexible alternative to conditional logistic case cross-over analysis](https://doi.org/10.1186/1471-2288-14-122), BMC Medical Research Methodology [~250 citations]
+
+Some recent Australasian applications:
+
+* Chen et al (2022) [Ambient air pollution and epileptic seizures: A panel study 
+in Australia](https://doi.org/10.1111/epi.17253), *Epilepsia*
+
+* Campbell et al (2024) [Assessing mortality associated with heatwaves in the cool 
+climate region of Tasmania, Australia](https://doi.org/10.1016/j.joclim.2024.100302), 
+*The Journal of Climate Change and Health*
 
 # Models for longitudinal categorical data {.yellow-bg}
 
@@ -383,7 +441,7 @@ On average, how do the probabilities change with covariates
 
 ## Indicator vector representation
 
-Representing the categorical response $y_{it}$ as a vector of integers:
+Represent the categorical response for subject $i$ at time $t$ as a vector of integers:
 
 $$\boldsymbol{y}_{it} = (y_{i1}, ..., y_{iJ})^\top$$
 
@@ -403,14 +461,16 @@ $$E[\boldsymbol{y}_{it} | \boldsymbol{x}_{it}] =
 1. Model the marginal mean $E[\boldsymbol{y}_{it} | \boldsymbol{x}_{it}] = \boldsymbol{\pi}_{it}(\boldsymbol{\beta})$
 2. Stack the repeated outcomes for a subject: 
 $\boldsymbol{y}_i = (\boldsymbol{y}_{i1}^\top, ..., \boldsymbol{y}_{iT}^\top)^\top$
-3. Specify a "working" covariance matrix: $\text{Var}(\boldsymbol{y}_i) = \boldsymbol{V}_i(\boldsymbol{\beta}, \boldsymbol{\alpha})$
+3. Specify a "working" covariance matrix: $\text{Var}(\boldsymbol{y}_i) = \boldsymbol{V}_i(\boldsymbol{\beta}, \hat{\boldsymbol{\alpha}})$
 4. Solve the estimating equation
-$$\boldsymbol{U(\boldsymbol{\beta}, \boldsymbol{\alpha})}= \sum_i \\boldsymbolathbf{D}_i^{\top} \\boldsymbolathbf{V}_i^{-1} (\\boldsymbolathbf{y}_i - \boldsymbol{\pi}_i) = \boldsymbol{0}, 
+$$\boldsymbol{U(\boldsymbol{\beta}, \hat{\boldsymbol{\alpha}})}= \sum_i \boldsymbol{D}_i^{\top} \boldsymbol{V}_i^{-1} (\boldsymbol{y}_i - \boldsymbol{\pi}_i) = \boldsymbol{0}, 
 \quad 
 \mathbf{D}_i = \frac{\partial \boldsymbol{\pi}_i}{\partial \boldsymbol{\beta}^\top}$$
 
-* No need to specify the full joint distribution
-* Gives consistent estimates of $\boldsymbol{\beta}$ even if $\boldsymbol{\alpha}$ mis-specified
+::: fragment
+* **No need to specify the full joint distribution**
+* **Gives consistent estimates of $\boldsymbol{\beta}$ even if $\boldsymbol{\alpha}$ mis-specified**
+:::
 
 ## Marginal Model
 
@@ -444,8 +504,10 @@ however, if the model is
 
 Want a parsimonious representation that captures the correlation patterns
 
-Touloumis et al (Biometrics, 69, 2013) propose to use association models for the 
-marginalized contingnency tables, implemented in R package {multgee}.
+:::fragment
+Touloumis et al (2013, *Biometrics*) propose to use **association models** for the 
+marginalized contingency tables, implemented in R package {multgee}.
+:::
 
 ::: notes
 efficient: uses the available information better, leading to smaller standard errors (overall) for the same amount of data.
@@ -468,21 +530,27 @@ i.e. $\log(\theta_{jj'g}) = \phi^g (\mu^g_j - \mu^g_{j+1}) (\mu^g_{j'} - \mu^g_{
 t' = "t prime"
 :::
 
-## Selecting the Association Model
+## Alternative Association Models
 
-The model for $\log(\theta_{jj'g})$ can be further simplified:
+Different models for $\log(\theta_{jj'g})$ can be obtained through different 
+models for $\phi^g\mu^g_j\mu^g_{j'}$:
 
 ::: smaller80
-| Structure             | Model for Log Local Odds Ratio                               | Association Model | Response |
-|-----------------------|--------------------------------------------------------------|-------------------|----------|
-| Independent           | 1                                                            | GLM               | Any      |
-| Uniform               | $\phi$                                                       | GLM               | Ordinal  |
-| Category exchangeable | $\phi^g$                                                     | GLM               | Ordinal  |
-| Time exchangeable     | $\phi (\mu_j - \mu_{j+1}) (\mu_{j'} - \mu_{j'+1})$           | GNM               | Any      |
-| Time-specific RC      | $\phi^g (\mu^g_j - \mu^g_{j+1}) (\mu^g_{j'} - \mu^g_{j'+1})$ | GNM               | Any      |
+| Structure             | Model for Log Local Odds Ratio                   | Interaction Formula  | Response |
+|-----------------------|---------------------------------------------|----------------------------------|----------|
+| Independent           | 1                                                            | N/A                   | Any      |
+| Uniform               | $\phi$                                                       | `~ r:c`                 | Ordinal  |
+| Category exchangeable | $\phi^g$                                                     | `~ G:r:c`               | Ordinal  |
+| Time exchangeable     | $\phi(\mu_j-\mu_{j+1})(\mu_{j'}-\mu_{j'+1})$           | `~ MultHomog(R,C)`      | Any      |
+| Time-specific RC      | $\phi^g (\mu^g_j-\mu^g_{j+1})(\mu^g_{j'}-\mu^g_{j'+1})$ | `~ MultHomog(G:R, G:C)` | Any      |
 :::
 
-We can select an adequate model by fitting the model with $\phi_g$ and using the simpler model if these parameters do not vary much.
+Where `MultHomog()` is a function in {gnm} for specifying homogeneous 
+multiplicative interactions ($\mu_r\mu_c$).
+
+:::{.notes}
+| Time-specific RC      | $\phi^g (\mu^g_j - \mu^g_{j+1}) (\mu^g_{j'} - \mu^g_{j'+1})$ | `~ MultHomog(G:R, G:C)     ` | Any      |
+:::
 
 ## Example: Housing data
 
@@ -498,9 +566,13 @@ data(housing)
 head(housing, 4)
 ```
 
+:::{.notes}
+nominal data
+:::
+
 ## Modelling with Local Odds Ratios GEE
 
-Estimate time-specific intrinsic parameters:
+Estimate time-specific intrinsic parameters $\phi^g$ (in a RC-G(1) model):
 
 ```{r}
 #| include: false
@@ -530,6 +602,20 @@ gee_criteria(fit_ind, fit_exch, fit_rc)[,1:3]
 ::: notes
 a lower QIC tells you that overall, the time-exchangeable structure captures the dependence pattern better and produces a more efficient model.
 :::
+
+## Exploring further
+
+The housing data is analysed in: 
+
+* Touloumis, A. (2011) [GEE for multinomial responses](https://ufdcimages.uflib.ufl.edu/UF/E0/04/32/26/00001/touloumis_a.pdf). PhD dissertation, University of Florida.
+
+The model is described in:
+
+* Touloumis, A. et al (2013) [GEE for multinomial responses using a local odds ratios parameterization](https://doi.org/10.1111/biom.12054) *Biometrics* [~150 citations]
+
+A recent Australasian example:
+
+* Cooper, IL et al (2025) [Returning to work following parental leave: the experiences of Australian anaesthetists](https://doi.org/10.1177/0310057X241265726), Anaesthesia and Intensive Care.
 
 # Modelling the mean-variance relationship for in-vitro diagnostic assays {.coral-bg}
 
@@ -584,7 +670,7 @@ where *Reproducibility* is the total variation and *Repeatability* is the pure a
 
 ## Precision Profiles
 
-Precision profiles model the relationship between the (a component of) variance 
+Precision profiles model the relationship between the (component of) variance 
 and the mean response. 
 
 {VFP} implements several models as in the Variance Function Program software:
@@ -686,5 +772,34 @@ When you combine multiple random effects (each with its own variance estimate an
 To account for this, VCA uses the Satterthwaite approximation to compute the effect DF for the total variance
 :::
 
+## Explore Further
+
+The [VFP vignette](https://CRAN.R-project.org/package=VFP/vignettes/VFP_package_vignette.html) gives further detail on the use of precision profiles.
+
+{VFP} aims to implement the functionality of the [Variance Function Program](https://www.aacb.asn.au/AACB/Resources/Variance-Function-Program.aspx) distributed by the Australasian Association for Clinical Biochemistry and Laboratory Medicine
+
+* The [VFP documentation](https://www.aacb.asn.au/common/Uploaded%20files/aacb/members/tools/VFP200.pdf) by W. A. Sadler (formerly Christchurch hospital) gives several references relating to the methods and application.
+
 ## Summary
 
+{gnm} provides a unified framework for a wide range of models
+
+Applications "in the wild" have used several of its features:
+
+* The "eliminate" feature for efficient handling of nuisance parameters
+* In-built "nonlin" functions to specify multiplicative terms
+* Custom "nonlin" functions for specialized models
+
+For more on {gnm} see the [vignette](https://cran.r-project.org/package=gnm/vignettes/gnmOverview.pdf) or the [BIBC 2025 tutorial](https://github.com/hturner/gnm-day-course)
+
+## References
+
+Turner, H and D Firth (2007) [gnm: A Package for Generalized Nonlinear Models](https://journal.r-project.org/articles/RN-2007-012/) *R News*
+
+Anderson, J. A. (1984). [Regression and Ordered Categorical Variables](https://doi.org/10.1111/j.2517-6161.1984.tb01270.x) *JRSS B*
+
+Goodman, L. A. (1979). [Simple models for the analysis of association in
+cross-classifications having ordered categories](https://doi.org/10.1080/01621459.1979.10481650) *JASA*
+
+Lee, R. D. and L. Carter (1992). [Modelling and forecasting the time series of
+{US} mortality](https://doi.org/10.1080/01621459.1992.10475265) *JASA*
